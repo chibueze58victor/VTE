@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart - Makkah Serenity Inc.</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .cart-container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .cart-container h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .cart-item:hover { background: #fafafa; }
+    .cart-item img {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-right: 15px;
+    }
+    .cart-info { flex: 1; }
+    .cart-info h2 { margin: 0; font-size: 16px; }
+    .cart-info p { color: #666; margin: 4px 0 0; }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .quantity-controls button {
+      background: #222;
+      color: white;
+      border: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .remove-btn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .remove-btn:hover { background: #d93636; }
+
+    .total {
+      text-align: right;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .actions button {
+      background: black;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+    .actions button:hover { background: #333; }
+
+    /* Modal for more info */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      text-align: center;
+      position: relative;
+    }
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* Buy Now Confirmation Modal */
+    .thankyou-modal .modal-content {
+      max-width: 400px;
+      padding: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cart-container">
+    <h1>Your Cart</h1>
+    <div id="cart-items"></div>
+    <p class="total" id="total">Total: $0.00</p>
+    <div class="actions">
+      <button id="clear-cart">Clear Cart</button>
+      <a href="E-commerce.html"><button>Continue Shopping</button></a>
+      <button id="buy-now">Buy Now</button>
+    </div>
+  </div>
+
+  <!-- Product Info Modal -->
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <button class="close-modal">&times;</button>
+      <img id="modal-img" src="" alt="">
+      <h2 id="modal-name"></h2>
+      <p id="modal-price"></p>
+      <p id="modal-description">A beautiful piece from Makkah Serenity Collection. Experience true style and serenity.</p>
+    </div>
+  </div>
+
+  <!-- Thank You Modal -->
+  <div class="modal thankyou-modal" id="thankyou-modal">
+    <div class="modal-content">
+      <h2>Thank You for Your Purchase!</h2>
+      <p>Your order has been placed successfully.</p>
+      <button id="close-thankyou">Close</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const cartItemsContainer = document.getElementById("cart-items");
+      const totalElement = document.getElementById("total");
+      const clearCartBtn = document.getElementById("clear-cart");
+      const buyNowBtn = document.getElementById("buy-now");
+      const modal = document.getElementById("product-modal");
+      const closeModal = document.querySelector(".close-modal");
+      const modalImg = document.getElementById("modal-img");
+      const modalName = document.getElementById("modal-name");
+      const modalPrice = document.getElementById("modal-price");
+      const thankYouModal = document.getElementById("thankyou-modal");
+      const closeThankYou = document.getElementById("close-thankyou");
+
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      function saveCart() {
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+
+      function updateCart() {
+        cartItemsContainer.innerHTML = "";
+        let total = 0;
+
+        if (cart.length === 0) {
+          cartItemsContainer.innerHTML = "<p style='text-align:center;'>Your cart is empty.</p>";
+          totalElement.textContent = "Total: $0.00";
+          return;
+        }
+
+        cart.forEach((item, index) => {
+          const div = document.createElement("div");
+          div.classList.add("cart-item");
+          div.innerHTML = `
+            <img src="${item.imgSrc}" alt="${item.name}">
+            <div class="cart-info">
+              <h2>${item.name}</h2>
+              <p>$${item.price}</p>
+            </div>
+            <div class="quantity-controls">
+              <button class="decrease" data-index="${index}">-</button>
+              <span>${item.quantity || 1}</span>
+              <button class="increase" data-index="${index}">+</button>
+            </div>
+            <button class="remove-btn" data-index="${index}">Remove</button>
+          `;
+          cartItemsContainer.appendChild(div);
+          total += parseFloat(item.price) * (item.quantity || 1);
+
+          div.querySelector("img").addEventListener("click", () => showProductInfo(item));
+          div.querySelector(".cart-info").addEventListener("click", () => showProductInfo(item));
+        });
+
+        totalElement.textContent = "Total: $" + total.toFixed(2);
+        saveCart();
+
+        document.querySelectorAll(".increase").forEach(btn => {
+          btn.addEventListener("click", e => {
+            const index = e.target.dataset.index;
+            cart[index].quantity = (cart[index].quantity || 1) + 1;
+            updateCart();
+          });
+        });
+
+        document.querySelectorAll(".decrease").forEach(btn => {
+          btn.addEventListener("click", e => {
+            const index = e.target.dataset.index;
+            if (cart[index].quantity > 1) {
+              cart[index].quantity -= 1;
+              updateCart();
+            }
+          });
+        });
+
+        document.querySelectorAll(".remove-btn").forEach(btn => {
+          btn.addEventListener("click", e => {
+            const index = e.target.dataset.index;
+            cart.splice(index, 1);
+            updateCart();
+          });
+        });
+      }
+
+      function showProductInfo(item) {
+        modalImg.src = item.imgSrc;
+        modalName.textContent = item.name;
+        modalPrice.textContent = `$${item.price}`;
+        modal.style.display = "flex";
+      }
+
+      closeModal.addEventListener("click", () => (modal.style.display = "none"));
+      window.addEventListener("click", e => {
+        if (e.target === modal) modal.style.display = "none";
+        if (e.target === thankYouModal) thankYouModal.style.display = "none";
+      });
+
+      clearCartBtn.addEventListener("click", () => {
+        localStorage.removeItem("cart");
+        cart = [];
+        updateCart();
+      });
+
+     // BUY NOW button functionality — redirects to mock bank payment page
+buyNowBtn.addEventListener("click", () => {
+  if (cart.length === 0) {
+    alert("Your cart is empty. Please add items before buying.");
+    return;
+  }
+
+  // Compute total amount
+  let total = 0;
+  cart.forEach(item => {
+    total += parseFloat(item.price) * (item.quantity || 1);
+  });
+
+  // Default recipient account (your business account)
+  const recipientAccount = "1234567890"; // demo
+
+  // Build URL with encoded params
+  const params = new URLSearchParams({
+    account: recipientAccount,
+    amount: total.toFixed(2),
+    returnUrl: window.location.origin + "/checkout-success.html"
+  });
+
+  // ✅ Redirect correctly
+  window.location.href = "bank-pay.html?" + params.toString();
+});
+
+
+
+      updateCart();
+    });
+  </script>
+</body>
+</html>

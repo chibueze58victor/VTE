@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Makkah Serenity Inc.</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .checkout-container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .checkout-flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .order-summary, .checkout-form {
+      flex: 1 1 400px;
+    }
+
+    .order-summary {
+      border-right: 1px solid #eee;
+      padding-right: 20px;
+    }
+
+    .order-summary h2, .checkout-form h2 {
+      margin-bottom: 15px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+
+    .summary-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+
+    .total {
+      font-weight: bold;
+      text-align: right;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    /* Form Styling */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    input, select, textarea {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    button {
+      background: black;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #333; }
+
+    .thankyou {
+      display: none;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .thankyou h2 {
+      color: green;
+    }
+
+    @media (max-width: 768px) {
+      .checkout-flex {
+        flex-direction: column;
+      }
+      .order-summary {
+        border-right: none;
+        padding-right: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="checkout-container">
+    <h1>Checkout</h1>
+    <div class="checkout-flex">
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <h2>Your Order</h2>
+        <div id="order-items"></div>
+        <p class="total" id="order-total">Total: $0.00</p>
+      </div>
+
+      <!-- Checkout Form -->
+      <div class="checkout-form">
+        <h2>Billing Details</h2>
+        <form id="checkout-form">
+          <input type="text" id="name" placeholder="Full Name" required>
+          <input type="email" id="email" placeholder="Email Address" required>
+          <textarea id="address" placeholder="Shipping Address" required></textarea>
+          <select id="payment" required>
+            <option value="">Select Payment Method</option>
+            <option value="credit-card">Credit Card</option>
+            <option value="paypal">PayPal</option>
+            <option value="cash-on-delivery">Cash on Delivery</option>
+          </select>
+          <button type="submit">Place Order</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Thank You Message -->
+    <div class="thankyou" id="thankyou-message">
+      <h2>Thank you for your order!</h2>
+      <p>Your order has been successfully placed. A confirmation email will be sent to you shortly.</p>
+      <a href="E-commerce.html"><button>Return to Shop</button></a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const orderItemsContainer = document.getElementById("order-items");
+      const orderTotal = document.getElementById("order-total");
+      const checkoutForm = document.getElementById("checkout-form");
+      const thankYouMessage = document.getElementById("thankyou-message");
+
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      function loadOrderSummary() {
+        orderItemsContainer.innerHTML = "";
+        let total = 0;
+
+        if (cart.length === 0) {
+          orderItemsContainer.innerHTML = "<p>Your cart is empty.</p>";
+          return;
+        }
+
+        cart.forEach(item => {
+          const div = document.createElement("div");
+          div.classList.add("summary-item");
+          div.innerHTML = `
+            <div style="display:flex; align-items:center;">
+              <img src="${item.imgSrc}" alt="${item.name}">
+              <span>${item.name} x ${item.quantity || 1}</span>
+            </div>
+            <span>$${(item.price * (item.quantity || 1)).toFixed(2)}</span>
+          `;
+          orderItemsContainer.appendChild(div);
+          total += item.price * (item.quantity || 1);
+        });
+
+        orderTotal.textContent = "Total: $" + total.toFixed(2);
+      }
+
+      // Handle form submission
+      checkoutForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        if (cart.length === 0) {
+          alert("Your cart is empty. Please add items before placing an order.");
+          return;
+        }
+
+        // Simulate order processing
+        alert("Processing your order...");
+
+        // Clear cart and show thank-you message
+        localStorage.removeItem("cart");
+        cart = [];
+        document.querySelector(".checkout-flex").style.display = "none";
+        thankYouMessage.style.display = "block";
+      });
+
+      loadOrderSummary();
+    });
+  </script>
+</body>
+</html>

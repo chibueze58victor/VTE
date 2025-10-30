@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo Bank Payment</title>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background:#f2f6fa; margin:0; padding:40px; display:flex; justify-content:center; }
+    .bank-card { background:white; width:520px; border-radius:10px; box-shadow:0 8px 30px rgba(10,20,40,0.08); padding:24px; }
+    .bank-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .bank-logo { width:48px; height:48px; border-radius:8px; background:linear-gradient(135deg,#0a74ff,#00c6ff); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; }
+    h2 { margin:0 0 6px 0; }
+    p.small { margin:0; color:#666; font-size:13px; }
+    form { margin-top:16px; display:flex; flex-direction:column; gap:12px; }
+    input[type="text"], input[type="number"] { padding:10px 12px; border-radius:8px; border:1px solid #d7e0ea; font-size:14px; }
+    .row { display:flex; gap:10px; }
+    .muted { color:#666; font-size:13px; }
+    .btn { background:#0a74ff; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .btn.secondary { background:#eee; color:#222; }
+    .notice { font-size:13px; color:#444; padding:10px 12px; background:#fbfdff; border:1px solid #eef6ff; border-radius:8px; }
+    .success { display:none; text-align:center; padding:18px; }
+  </style>
+</head>
+<body>
+  <div class="bank-card">
+    <div class="bank-header">
+      <div class="bank-logo">DB</div>
+      <div>
+        <h2>Demo Bank — Payment</h2>
+        <p class="small">Secure transfer page (demo). Please confirm the details below.</p>
+      </div>
+    </div>
+
+    <div class="notice">
+      This is a demo bank payment page. No real money is transferred. For production use, integrate with your bank's official API or a payment gateway.
+    </div>
+
+    <form id="bank-form" autocomplete="off">
+      <label class="muted">Recipient (Account Number)</label>
+      <input type="text" id="recipient-account" readonly />
+
+      <label class="muted">Amount (USD)</label>
+      <input type="text" id="amount" readonly />
+
+      <label class="muted">Your Account Number (to debit)</label>
+      <input type="text" id="payer-account" placeholder="Enter your account number" required />
+
+      <label class="muted">Reference / Note (optional)</label>
+      <input type="text" id="reference" placeholder="Order #1234 or item name" />
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button type="button" class="btn" id="confirm-btn">Confirm Payment</button>
+        <button type="button" class="btn secondary" id="cancel-btn">Cancel</button>
+      </div>
+    </form>
+
+    <div class="success" id="success-box">
+      <h3>Payment Successful (Demo)</h3>
+      <p id="success-text"></p>
+      <div style="margin-top:14px;">
+        <button class="btn" id="return-btn">Return to Shop</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Read query params
+    const qs = new URLSearchParams(window.location.search);
+    const recipient = qs.get('account') || '';
+    const amount = qs.get('amount') || '0.00';
+    const returnUrl = qs.get('returnUrl') || null;
+
+    document.getElementById('recipient-account').value = recipient;
+    document.getElementById('amount').value = parseFloat(amount).toFixed(2);
+
+    const confirmBtn = document.getElementById('confirm-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const payerInput = document.getElementById('payer-account');
+    const successBox = document.getElementById('success-box');
+    const successText = document.getElementById('success-text');
+    const returnBtn = document.getElementById('return-btn');
+
+    confirmBtn.addEventListener('click', () => {
+      const payer = payerInput.value.trim();
+      if (!payer) {
+        alert('Please enter your account number to authorize the transfer.');
+        payerInput.focus();
+        return;
+      }
+
+      // Simulate server verification + transfer processing
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Processing...';
+
+      setTimeout(() => {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm Payment';
+
+        // Show success message (demo)
+        successText.innerHTML = `
+          <strong>Debited:</strong> ${payer} <br/>
+          <strong>Credited:</strong> ${recipient} <br/>
+          <strong>Amount:</strong> $${parseFloat(amount).toFixed(2)}
+        `;
+        document.getElementById('bank-form').style.display = 'none';
+        successBox.style.display = 'block';
+
+        // Clear cart (if original site used localStorage 'cart' — this page can remove it if same domain)
+        try { localStorage.removeItem('cart'); } catch (e) {}
+
+      }, 1200); // demo delay
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      // simply go back to referring page or shop
+      if (document.referrer) window.history.back();
+      else window.location.href = 'cart-section.html';
+    });
+
+    returnBtn.addEventListener('click', () => {
+      // prefer explicit returnUrl if provided, otherwise try home
+      if (returnUrl) {
+        window.location.href = 'E-commerce.html';
+      } else {
+        window.location.href = 'E-commerce.html';
+      }
+    });
+  </script>
+</body>
+</html>
